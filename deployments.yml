@@ -1,29 +1,26 @@
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: apps/v1
+kind: Deplyment
 metadata:
-annotations:
-deployment.kubernetes.io/revision: "1"
-labels:
-run: nginx
-name: nginx
-namespace: default
+  name: web
+  namespace: default
 spec:
-replicas: 2
-selector:
-matchLabels:
-run: nginx
-strategy:
-rollingUpdate:
-maxSurge: 1
-maxUnavailable: 1
-type: RollingUpdate
-template:
-metadata:
-labels:
-run: nginx
-spec:
-containers:
-- image: nginx:1.7.12
-imagePullPolicy: Always
-dnsPolicy: ClusterFirst
-restartPolicy: Always
+  podManagementPolicy: OrderedReady  # you must set OrderedReady
+  replicas: 5
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      # image changed since publication (previously used registry "k8s.gcr.io")
+      - image: registry.k8s.io/nginx-slim:0.8
+        imagePullPolicy: IfNotPresent
+        name: nginx
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 2 # this is the new alpha field, whose default value is 1
+      partition: 0
+    type: RollingUpdate
